@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-use std::io::{self, BufRead, BufReader, stdin};
+use std::io::{self, BufRead, BufReader};
 use std::fmt;
 
-const MAX_LINE_SIZE: u16 = 7 + 1 + 6 + 1 + 6 + 2 + 10; // DECLARE + ws + <decl> + ws + <identifier> + \r\n + bonus
+const MAX_LINE_SIZE: u16 = 7 + 1 + 6 + 1 + 6 + 1; // DECLARE + ws + <decl> + ws + <identifier> + \n
 const C_STR_SIZE: usize = 6;
 
 fn main() ->  io::Result<()>
@@ -10,10 +10,10 @@ fn main() ->  io::Result<()>
   let nr_of_lines: u32 = read_line_as_int();
   let lines: Vec<Line> = read_nr_of_lines(nr_of_lines);
 
-  let mut decls: Vec<HashMap<Cstr, Cstr>> = Vec::with_capacity(nr_of_lines as usize);
-  decls.push(HashMap::with_capacity(nr_of_lines as usize));
+  let mut variable_declarations: Vec<HashMap<Cstr, Cstr>> = Vec::with_capacity(nr_of_lines as usize);
+  variable_declarations.push(HashMap::with_capacity(nr_of_lines as usize));
 
-  let mut decls_index: HashMap<Cstr, Vec<u32>> = HashMap::with_capacity(nr_of_lines as usize);
+  let mut variable_declaration_indices: HashMap<Cstr, Vec<u32>> = HashMap::with_capacity(nr_of_lines as usize);
   let mut current_index: u32 = 0;
 
   let mut output: String = String::with_capacity(MAX_LINE_SIZE as usize * nr_of_lines as usize);
@@ -21,54 +21,48 @@ fn main() ->  io::Result<()>
   // Loop over read lines.
   for (i, line) in lines.iter().enumerate()
   {
-    // Match for each type of line that is read.
     match line
     {
       Line::OPENBL =>
       {
-        decls.push(HashMap::with_capacity(nr_of_lines as usize - i));
+        variable_declarations.push(HashMap::with_capacity(nr_of_lines as usize - i));
         current_index += 1;
       }
 
       Line::CLOSEBL =>
       {
-        let mut keys_to_remove: Vec<Cstr> = Vec::with_capacity(decls_index.len());
-        for (key, indices) in &mut decls_index
+        for (_key, indices) in &mut variable_declaration_indices
         {
-          match indices.iter().position(|x| *x == current_index)
+          if !indices.is_empty() && *indices.last().unwrap() == current_index
           {
-            Some(index) =>
-            {
-              _ = indices.remove(index);
-              if indices.is_empty()
-              {
-                keys_to_remove.push(*key);
-              }
-            },
-            None => (),
+            _ = indices.remove(indices.len() - 1);
           }
         }
-        for key in keys_to_remove
-        {
-          decls_index.remove(&key);
-        }
-        _ = decls.pop();
+        _ = variable_declarations.pop();
         current_index -= 1;
       }
 
       Line::TYPEOF(key) =>
       {
-        match decls_index.get(&key)
+        match variable_declaration_indices.get(&key)
         {
           Some(indices) =>
           {
-            let index: usize = *indices.last().unwrap() as usize;
-            let map = decls.get(index).unwrap();
-            for c in map.get(&key).unwrap().str
+            if indices.is_empty()
             {
-              output.push(c);
+              output.push_str("UNDECLARED");
+              output.push('\n');
             }
-            output.push('\n');
+            else
+            {
+              let index: usize = *indices.last().unwrap() as usize;
+              let map = variable_declarations.get(index).unwrap();
+              for c in map.get(&key).unwrap().str
+              {
+                output.push(c);
+              }
+              output.push('\n');
+            }
           }
           None =>
           {
@@ -80,35 +74,36 @@ fn main() ->  io::Result<()>
 
       Line::DECLARE(key, value) =>
       {
-        let map = decls.last_mut().unwrap();  
-        match map.get(&key)
+        match variable_declaration_indices.get_mut(&key)
         {
-          Some(_) =>
+          Some(indices) =>
           {
-            println!("{output}MULTIPLE DECLARATION");
-            return Ok(());
-          },
-          None =>
-          {
-            map.insert(*key, *value);
-            match decls_index.get_mut(&key)
+            if !indices.is_empty() && *indices.last().unwrap() == current_index
             {
-              Some(indices) => indices.push(current_index),
-              None =>
-              {
-                let mut indices: Vec<u32> = Vec::with_capacity(MAX_LINE_SIZE as usize);
-                indices.push(current_index);
-                decls_index.insert(*key, indices);
-              },
+              println!("{output}MULTIPLE DECLARATION");
+              return Ok(());
+            }
+            else
+            {
+              indices.push(current_index);
+              variable_declarations.last_mut().unwrap().insert(*key, *value);
             }
           }
+          None =>
+          {
+            let mut indices = Vec::with_capacity(MAX_LINE_SIZE as usize);
+            indices.push(current_index);
+            variable_declaration_indices.insert(*key, indices);
+            variable_declarations.last_mut().unwrap().insert(*key, *value);
+          }
         }
+
       }
 
     } // match
   } // for
 
-  println!("{output}");
+  println!("\n{output}");
   Ok(())
 }
 
@@ -135,21 +130,31 @@ impl PartialEq for Cstr
 
 impl Eq for Cstr {}
 
-fn new_c_str() -> Cstr
+trait CstrObj
 {
-  Cstr { str: ['\0'; C_STR_SIZE] }
+  fn new() -> Self;
+
+  fn from_str(from: &str) -> Self;
 }
 
-fn new_c_str_from_str(from: &str) -> Cstr
+impl CstrObj for Cstr
 {
-  let mut new: Cstr = new_c_str();
-
-  for (i, char) in from.chars().enumerate()
+  fn new() -> Self
   {
-    if i >= C_STR_SIZE { break }
-    new.str[i] = char;
+    Cstr { str: ['\0'; C_STR_SIZE] }
   }
-  return new;
+
+  fn from_str(from: &str) -> Self
+  {
+    let mut new: Cstr = Cstr::new();
+
+    for (i, char) in from.chars().enumerate()
+    {
+      if i >= C_STR_SIZE { break }
+      new.str[i] = char;
+    }
+    return new;
+  }
 }
 
 impl fmt::Display for Cstr
@@ -198,34 +203,19 @@ fn read_nr_of_lines(nr_of_lines: u32) -> Vec<Line>
 {
   let mut lines: Vec<Line> = Vec::with_capacity(nr_of_lines as usize);
 
-  let stdin: io::Stdin = io::stdin(); // We get `Stdin` here.
-  let max_in_size: usize = MAX_LINE_SIZE as usize * nr_of_lines as usize;
-  let buf = BufReader::with_capacity(max_in_size, stdin);
-  // let mut input = String::with_capacity(MAX_LINE_SIZE as usize);
+  let max_in_size: usize = MAX_LINE_SIZE as usize * nr_of_lines as usize * 2;
+  let buf_reader = BufReader::with_capacity(max_in_size, io::stdin().lock());
 
-  let buf_lines = buf.lines();
-  for line in buf_lines
+  for read_line in buf_reader.lines()
   {
-    let l: &String = &line.unwrap();
+    let line: &String = &read_line.unwrap();
     
-    if l.is_empty()
+    if line.is_empty()
     {
       break;
     }
-    lines.push(string_to_enum(l.trim()));
+    lines.push(string_to_enum(line.trim()));
   }
-  /*for _ in 0..nr_of_lines
-  {
-    match buf.read_line(&mut input)
-    {
-      Ok(_) =>
-      {
-        lines.push(string_to_enum(input.trim()));
-        input.clear();
-      }
-      Err(error) => panic!("Error {}", error.to_string())
-    }
-  }*/
 
   return lines;
 }
@@ -236,14 +226,14 @@ fn string_to_enum(s: &str) -> Line
   {
     Some('{') => Line::OPENBL,
     Some('}') => Line::CLOSEBL,
-    Some('T') => Line::TYPEOF(new_c_str_from_str(&s.trim()[7..])),
+    Some('T') => Line::TYPEOF(Cstr::from_str(&s.trim()[7..])),
     Some('D') =>
     {
       let split: Vec<&str> = s[8..].trim().split(" ").collect();
       let key = split.get(0).unwrap();
       let value = split.get(1).unwrap();
 
-      return Line::DECLARE(new_c_str_from_str(key), new_c_str_from_str(value));
+      return Line::DECLARE(Cstr::from_str(key), Cstr::from_str(value));
     }
     _ => panic!("Unexpected line! '{}'", s),
   }
