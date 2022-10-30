@@ -5,40 +5,45 @@ use std::fmt;
 const MAX_LINE_SIZE: u16 = 7 + 1 + 6 + 1 + 6 + 1; // DECLARE + ws + <decl> + ws + <identifier> + \n
 const C_STR_SIZE: usize = 6;
 
-fn main() ->  io::Result<()>
+fn main() -> io::Result<()>
 {
-  let nr_of_lines: u32 = read_line_as_int();
+  let nr_of_lines: usize = read_line_as_int() as usize;
   let lines: Vec<Line> = read_nr_of_lines(nr_of_lines);
 
-  let mut variable_declarations: Vec<HashMap<Cstr, Cstr>> = Vec::with_capacity(nr_of_lines as usize);
-  variable_declarations.push(HashMap::with_capacity(nr_of_lines as usize));
+  let mut variable_declarations: Vec<HashMap<Cstr, Cstr>> = vec![HashMap::new(); nr_of_lines];
 
-  let mut variable_declaration_indices: HashMap<Cstr, Vec<u32>> = HashMap::with_capacity(nr_of_lines as usize);
+  let mut variable_declaration_indices: HashMap<Cstr, Vec<u32>> = HashMap::with_capacity(nr_of_lines);
   let mut current_index: u32 = 0;
 
-  let mut output: String = String::with_capacity(MAX_LINE_SIZE as usize * nr_of_lines as usize);
+  let mut output: String = String::with_capacity(MAX_LINE_SIZE as usize * nr_of_lines);
 
   // Loop over read lines.
-  for (i, line) in lines.iter().enumerate()
+  for line in lines
   {
     match line
     {
       Line::OPENBL =>
       {
-        variable_declarations.push(HashMap::with_capacity(nr_of_lines as usize - i));
         current_index += 1;
+        variable_declarations[current_index as usize].clear()
       }
 
       Line::CLOSEBL =>
       {
-        for (_key, indices) in &mut variable_declaration_indices
+        for (key, _) in &variable_declarations[current_index as usize]
         {
-          if !indices.is_empty() && *indices.last().unwrap() == current_index
+          match variable_declaration_indices.get_mut(&key)
           {
-            _ = indices.remove(indices.len() - 1);
+            Some(indices) =>
+            {
+              if !indices.is_empty() && *indices.last().unwrap() == current_index
+              {
+                indices.pop();
+              }
+            },
+            None => (),
           }
         }
-        _ = variable_declarations.pop();
         current_index -= 1;
       }
 
@@ -86,15 +91,15 @@ fn main() ->  io::Result<()>
             else
             {
               indices.push(current_index);
-              variable_declarations.last_mut().unwrap().insert(*key, *value);
+              variable_declarations[current_index as usize].insert(key, value);
             }
           }
           None =>
           {
             let mut indices = Vec::with_capacity(MAX_LINE_SIZE as usize);
             indices.push(current_index);
-            variable_declaration_indices.insert(*key, indices);
-            variable_declarations.last_mut().unwrap().insert(*key, *value);
+            variable_declaration_indices.insert(key, indices);
+            variable_declarations[current_index as usize].insert(key, value);
           }
         }
 
@@ -199,11 +204,11 @@ fn read_line_as_int() -> u32
   return read_line().trim().parse::<u32>().unwrap();
 }
 
-fn read_nr_of_lines(nr_of_lines: u32) -> Vec<Line>
+fn read_nr_of_lines(nr_of_lines: usize) -> Vec<Line>
 {
-  let mut lines: Vec<Line> = Vec::with_capacity(nr_of_lines as usize);
+  let mut lines: Vec<Line> = Vec::with_capacity(nr_of_lines);
 
-  let max_in_size: usize = MAX_LINE_SIZE as usize * nr_of_lines as usize * 2;
+  let max_in_size: usize = MAX_LINE_SIZE as usize * nr_of_lines * 2;
   let buf_reader = BufReader::with_capacity(max_in_size, io::stdin().lock());
 
   for read_line in buf_reader.lines()
@@ -214,7 +219,7 @@ fn read_nr_of_lines(nr_of_lines: u32) -> Vec<Line>
     {
       break;
     }
-    lines.push(string_to_enum(line.trim()));
+    lines.push(string_to_enum(line));
   }
 
   return lines;
@@ -226,10 +231,10 @@ fn string_to_enum(s: &str) -> Line
   {
     Some('{') => Line::OPENBL,
     Some('}') => Line::CLOSEBL,
-    Some('T') => Line::TYPEOF(Cstr::from_str(&s.trim()[7..])),
+    Some('T') => Line::TYPEOF(Cstr::from_str(&s[7..])),
     Some('D') =>
     {
-      let split: Vec<&str> = s[8..].trim().split(" ").collect();
+      let split: Vec<&str> = s[8..].split(" ").collect();
       let key = split.get(0).unwrap();
       let value = split.get(1).unwrap();
 
