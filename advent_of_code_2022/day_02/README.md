@@ -1,0 +1,1 @@
+Yeah this is not the best solution and calculations are accidentaly swapped and input are read twice. Geez.
