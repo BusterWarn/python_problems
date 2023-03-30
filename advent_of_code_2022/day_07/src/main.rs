@@ -1,4 +1,3 @@
-use std::borrow::Borrow;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::{cell::RefCell, rc::Rc};
@@ -44,10 +43,7 @@ fn problem_1(lines: &Vec<Line>)
           
           let dir = dirs.
             iter()
-            .filter(|d|{
-              let p: Dir = *d.borrow();
-              p.name == *cd_to;
-            })
+            .filter(|d| { d.borrow_mut().name == *cd_to })
             .next();
           if dir.is_none()
           {
@@ -62,7 +58,7 @@ fn problem_1(lines: &Vec<Line>)
         {
           Ok(size) =>
           {
-            cur_dir.get_mut().files.push((second.clone(), size));
+            cur_dir.borrow_mut().files.push((second.clone(), size));
             //let stored_size = dirs.get_mut(path.last().unwrap().name.clone()).unwrap();
             //*stored_size = *stored_size + s;
           },
@@ -81,14 +77,14 @@ fn problem_1(lines: &Vec<Line>)
     for dir in dirs.clone()
     {
       // DANGELOUS
-      println!("dir {} - {}", dir.borrow().name, dir.borrow().get_size());
+      println!("dir {} - {}", dir.borrow_mut().name, dir.borrow_mut().get_size());
     }
   }
 
   let sum = dirs
     .iter()
-    .filter(|dir| dir.get_size() <= 100000 as u64)
-    .map(|dir| dir.get_size())
+    .filter(|dir| dir.borrow_mut().get_size() <= 100000 as u64)
+    .map(|dir| dir.borrow_mut().get_size())
     .sum::<u64>();
   println!("Total disk space: {sum}");
 }
@@ -125,9 +121,9 @@ impl Dir
       .map(|(_, file_size)| file_size)
       .sum::<u64>();
     
-    size = size + self.dirs
+    size += self.dirs
       .iter()
-      .map(|dir| dir.get_size())
+      .map(|dir| dir.borrow_mut().get_size())
       .sum::<u64>();
     
     return size;
@@ -136,12 +132,11 @@ impl Dir
 
 fn get_dir(dirs: &Vec<Rc<RefCell<Dir>>>, dir_name: &String) -> Rc<RefCell<Dir>>
 {
-  let p =  dirs
+  Rc::clone(dirs
       .iter()
-      .filter(|d| d.borrow().name == *dir_name)
+      .filter(|d| d.borrow_mut().name == *dir_name)
       .next()
-      .unwrap();
-  return *p;
+      .unwrap())
 }
 
 enum Line
