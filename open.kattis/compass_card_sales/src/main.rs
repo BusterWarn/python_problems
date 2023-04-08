@@ -2,6 +2,7 @@ use std::io::{self, BufRead, BufReader};
 use std::collections::HashSet;
 
 const DEBUG: bool = false;
+const CAPACITY: usize = 100;
 
 fn main()
 {
@@ -21,7 +22,7 @@ struct Card
   sold: bool,
   f_rgb_index: [usize; 3],
   b_rgb_index: [usize; 3],
-  rgb_duplicates: [Option<HashSet<usize>>; 3]
+  rgb_duplicates: [HashSet<usize>; 3]
 }
 
 impl Card
@@ -37,7 +38,7 @@ impl Card
       sold: false,
       f_rgb_index: [usize::MAX, usize::MAX, usize::MAX],
       b_rgb_index: [usize::MAX, usize::MAX, usize::MAX],
-      rgb_duplicates: [None, None, None]
+      rgb_duplicates: [HashSet::<usize>::with_capacity(CAPACITY), HashSet::<usize>::with_capacity(CAPACITY), HashSet::<usize>::with_capacity(CAPACITY)]
     }
   }
 
@@ -75,7 +76,7 @@ impl Card
 
   fn i_have_been_sold_update_my_duplicates(&mut self, cards: &mut Vec<Card>, rgb_index: usize, new_uniqueness: u16) -> Option<usize>
   {
-    if self.rgb_duplicates[rgb_index].is_none()
+    if self.rgb_duplicates[rgb_index].is_empty()
     {
       return None;
     }
@@ -83,16 +84,16 @@ impl Card
     let mut new_index_because_i_was_duplicate: Option<usize> = None;
     unsafe
     {
-      let dup_indices: Vec<&usize> = self.rgb_duplicates[rgb_index].as_ref().unwrap_unchecked().iter().collect();
+      let dup_indices: Vec<&usize> = self.rgb_duplicates[rgb_index].iter().collect();
 
       for duplicate_index in dup_indices
       {
         new_index_because_i_was_duplicate = Some(*duplicate_index);
         let duplicate_card = cards.get_unchecked_mut(*duplicate_index);
-        duplicate_card.remove_duplicate(self.index, rgb_index);
+        duplicate_card.rgb_duplicates[rgb_index].remove(&self.index);
 
         // If this card is no longer a duplicate, we need to update its uniqueness.
-        if duplicate_card.rgb_duplicates[rgb_index].is_none()
+        if duplicate_card.rgb_duplicates[rgb_index].is_empty()
         {
           duplicate_card.uniqueness += new_uniqueness;
         }
@@ -113,37 +114,13 @@ impl Card
   {
     unsafe
     {
-      let mut front_is_duplicate = false;
+      // Update cards in front
       let front_card = cards.get_unchecked(front_index);
+      let front_is_duplicate = if front_card.rgb_duplicates[rgb_index].is_empty() { false } else { true };
+      let mut front_indices_to_update: Vec<usize> = Vec::with_capacity(CAPACITY);
 
-      let mut front_indices_to_update: Vec<usize> = Vec::with_capacity(10);
       front_indices_to_update.push(front_index);
-      match &front_card.rgb_duplicates[rgb_index]
-      {
-        None => (),
-        Some(duplicate_indices) =>
-        {
-          if duplicate_indices.is_empty() { return }
-          front_is_duplicate = true;
-          front_indices_to_update.extend(duplicate_indices.iter());
-        }
-      }
-      
-      let mut back_is_duplicate = false;
-      let back_card = cards.get_unchecked(back_index);
-
-      let mut back_indices_to_update: Vec<usize> = Vec::with_capacity(10);
-      back_indices_to_update.push(back_index);
-      match &back_card.rgb_duplicates[rgb_index]
-      {
-        None => (),
-        Some(duplicate_indices) =>
-        {
-          if duplicate_indices.is_empty() { return }
-          back_is_duplicate = true;
-          back_indices_to_update.extend(duplicate_indices.iter());
-        }
-      }
+      front_indices_to_update.extend(front_card.rgb_duplicates[rgb_index].iter());
 
       for front_index_to_update in front_indices_to_update
       {
@@ -151,16 +128,27 @@ impl Card
         card_to_update.b_rgb_index[rgb_index] = back_index;
       }
 
-      for back_index_to_update in back_indices_to_update
-      {
-        let card_to_update = cards.get_unchecked_mut(back_index_to_update);
-        card_to_update.f_rgb_index[rgb_index] = front_index;
-      }
-
       if !front_is_duplicate
       {
         let front_card = cards.get_unchecked_mut(front_index);
         front_card.uniqueness += new_score_for_cards_in_front;
+      }
+    }
+
+    unsafe
+    {
+      // Update cards behind
+      let back_card = cards.get_unchecked(back_index);
+      let back_is_duplicate = if back_card.rgb_duplicates[rgb_index].is_empty() { false } else { true };
+      let mut back_indices_to_update: Vec<usize> = Vec::with_capacity(CAPACITY);
+
+      back_indices_to_update.push(back_index);
+      back_indices_to_update.extend(back_card.rgb_duplicates[rgb_index].iter());
+
+      for back_index_to_update in back_indices_to_update
+      {
+        let card_to_update = cards.get_unchecked_mut(back_index_to_update);
+        card_to_update.f_rgb_index[rgb_index] = front_index;
       }
 
       if !back_is_duplicate
@@ -178,11 +166,7 @@ impl Card
     unsafe
     {
       let card_behind = cards.get_unchecked(back_index);
-      match &card_behind.rgb_duplicates[rgb_index]
-      {
-        None => (),
-        Some(duplicates_indices) => back_indices_to_update.extend(duplicates_indices.iter())
-      }
+      back_indices_to_update.extend(card_behind.rgb_duplicates[rgb_index].iter());
     }
 
     let mut front_indices_to_update: Vec<usize> = Vec::with_capacity(5);
@@ -190,11 +174,7 @@ impl Card
     unsafe
     {
       let card_in_front = cards.get_unchecked(front_index);
-      match &card_in_front.rgb_duplicates[rgb_index]
-      {
-        None => (),
-        Some(duplicates_indices) => front_indices_to_update.extend(duplicates_indices.iter())
-      }
+      front_indices_to_update.extend(card_in_front.rgb_duplicates[rgb_index].iter());
     }
 
     unsafe
@@ -212,27 +192,6 @@ impl Card
         let card_in_front = cards.get_unchecked_mut(index);
         card_in_front.b_rgb_index[rgb_index] = new_index;
       }
-    }
-  }
-
-  fn remove_duplicate(&mut self, duplicate_index: usize, rgb_index: usize)
-  {
-    if self.rgb_duplicates[rgb_index].is_none()
-    {
-      return;
-    }
-
-    if unsafe { self.rgb_duplicates[rgb_index].as_ref().unwrap_unchecked().len() } == 1
-    {
-      self.rgb_duplicates[rgb_index] = None;
-      return;
-    }
-
-    unsafe
-    {
-      // Remove self from other duplicate list
-      let duplicates = self.rgb_duplicates[rgb_index].as_mut().unwrap_unchecked();
-      duplicates.remove(&duplicate_index);
     }
   }
 
@@ -295,7 +254,7 @@ fn compute_slow(cards: &mut Vec<Card>) -> String
     // debug_print_1(&cards, cloned_cards.len());
     
     sort_cards(&mut cloned_cards);
-    let (_index, card_to_sell) = cloned_cards.pop().unwrap();
+    let (index, card_to_sell) = cloned_cards.pop().unwrap();
     
     unsafe
     {
@@ -310,7 +269,7 @@ fn compute_slow(cards: &mut Vec<Card>) -> String
         }
       }
     }
-    cards.remove(_index);
+    cards.remove(index);
 
   }
   return output;
@@ -329,9 +288,9 @@ fn debug_print_1(cards: &Vec<Card>, cloned_cards_len: usize)
               _i,
               card.sold.to_string(),
               card.uniqueness,
-              if card.rgb_duplicates[0].is_some() { "S" } else { "N" },
-              if card.rgb_duplicates[1].is_some() { "S" } else { "N" },
-              if card.rgb_duplicates[2].is_some() { "S" } else { "N" },
+              card.rgb_duplicates[0].len(),
+              card.rgb_duplicates[1].len(),
+              card.rgb_duplicates[2].len(),
               card.rgb[0], card.rgb[1], card.rgb[2],
               card.f_rgb_index[0], card.f_rgb_index[1], card.f_rgb_index[2],
               card.b_rgb_index[0], card.b_rgb_index[1], card.b_rgb_index[2]);
@@ -354,16 +313,15 @@ fn get_cards_as_clone(cards: &mut Vec<Card>) -> ClonedCards
 
 fn sort_cards(cards: &mut ClonedCards)
 {
-  cards.sort_by(|(_, card_1), (_, card_2)| {
-    unsafe {
-      let c_1 = *card_1;
-      let c_2 = *card_2;
-
-      if (*c_1).uniqueness < (*c_2).uniqueness { return std::cmp::Ordering::Greater }
-      if (*c_1).uniqueness > (*c_2).uniqueness { return std::cmp::Ordering::Less }
+  cards.sort_by(|(_, c_1), (_, c_2)|
+  {
+    unsafe
+    {
+      if (**c_1).uniqueness < (**c_2).uniqueness { return std::cmp::Ordering::Greater }
+      if (**c_1).uniqueness > (**c_2).uniqueness { return std::cmp::Ordering::Less }
   
-      if (*c_1).id > (*c_2).id { return std::cmp::Ordering::Greater }
-      if (*c_1).id < (*c_2).id { return std::cmp::Ordering::Less }
+      if (**c_1).id > (**c_2).id { return std::cmp::Ordering::Greater }
+      if (**c_1).id < (**c_2).id { return std::cmp::Ordering::Less }
       }
     panic!("Keys are duplicate");
   });
@@ -379,15 +337,12 @@ fn update_all_cards(cards: &mut Vec<Card>)
     let card_to_edit = cards.get(index).unwrap();
     let (uniqueness, f_rgb_index, b_rgb_index, duplicates) = get_card_values(card_to_edit, cards);
 
-    // Get mutable reference and update card. Done in block to avoid angering borrow checker.
-    {
-      let card_to_edit = cards.get_mut(index).unwrap();
-      card_to_edit.uniqueness = uniqueness;
-      card_to_edit.f_rgb_index = f_rgb_index;
-      card_to_edit.b_rgb_index = b_rgb_index;
-      card_to_edit.rgb_duplicates = duplicates;
-      card_to_edit.index = index;
-    }
+    let card_to_edit = cards.get_mut(index).unwrap();
+    card_to_edit.uniqueness = uniqueness;
+    card_to_edit.f_rgb_index = f_rgb_index;
+    card_to_edit.b_rgb_index = b_rgb_index;
+    card_to_edit.rgb_duplicates = duplicates;
+    card_to_edit.index = index;
   }
 }
 
@@ -399,16 +354,16 @@ fn update_all_cards(cards: &mut Vec<Card>)
  *           The rgb indices of the nearest cards backwards
  *           Indices of cards with duplicate rgb values 
  */
-fn get_card_values(card: &Card, cards: &Vec<Card>) -> (u16, [usize; 3], [usize; 3], [Option<HashSet<usize>>; 3])
+fn get_card_values(card: &Card, cards: &Vec<Card>) -> (u16, [usize; 3], [usize; 3], [HashSet<usize>; 3])
 {
   let mut uniqueness: u16 = 0;
   let mut f_rgb_index: [usize; 3] = [usize::MAX; 3];
   let mut b_rgb_index: [usize; 3] = [usize::MAX; 3];
-  let mut rgb_duplicates_option: [Option<HashSet<usize>>; 3] = [None, None, None];
+  let mut rgb_duplicates: [HashSet<usize>; 3] = [HashSet::<usize>::with_capacity(CAPACITY), HashSet::<usize>::with_capacity(CAPACITY), HashSet::<usize>::with_capacity(CAPACITY)];
   
   for rgb_index in 0..3 as usize
   {
-    let (f_dist, f_index,  b_dist, b_index, new_duplicates_option) = 
+    let (f_dist, f_index,  b_dist, b_index, new_duplicates) = 
       get_closest_two_cards(card, &cards, rgb_index);
 
     // assert!(f_dist <= 359);
@@ -422,25 +377,17 @@ fn get_card_values(card: &Card, cards: &Vec<Card>) -> (u16, [usize; 3], [usize; 
     f_rgb_index[rgb_index] = f_index;
     b_rgb_index[rgb_index] = b_index;
 
-    match new_duplicates_option
+    if new_duplicates.is_empty()
     {
-      // get_closest_cards returned that angles are the same as to another card for this RGB index. Duplicate means uniqueness = 0
-      Some(new_duplicates) => 
-      {
-        match rgb_duplicates_option[rgb_index]
-        {
-          Some(ref mut duplicates) => duplicates.extend(new_duplicates.iter()),
-          None => rgb_duplicates_option[rgb_index] = Some(new_duplicates)
-        }
-      },
-
-      // No duplicates, calculate uniqueness as normal
-      None => uniqueness += f_dist + b_dist
+      uniqueness += f_dist + b_dist;
     }
-
+    else
+    {
+      rgb_duplicates[rgb_index].extend(new_duplicates.iter())
+    }
   }
 
-  return (uniqueness, f_rgb_index, b_rgb_index, rgb_duplicates_option);
+  return (uniqueness, f_rgb_index, b_rgb_index, rgb_duplicates);
 }
 
 /**
@@ -453,7 +400,7 @@ fn get_card_values(card: &Card, cards: &Vec<Card>) -> (u16, [usize; 3], [usize; 
  *             behind card distance, behind card index.
  *             Set with indices to card that have the same angles
  */
-fn get_closest_two_cards(card: &Card, cards: &Vec<Card>, rgb_index: usize) -> (u16, usize, u16, usize, Option<HashSet<usize>>)
+fn get_closest_two_cards(card: &Card, cards: &Vec<Card>, rgb_index: usize) -> (u16, usize, u16, usize, HashSet<usize>)
 {
   let mut f_card_dist: u16 = u16::MAX;
   let mut b_card_dist: u16 = u16::MAX;
@@ -461,7 +408,7 @@ fn get_closest_two_cards(card: &Card, cards: &Vec<Card>, rgb_index: usize) -> (u
   let mut f_index: usize = usize::MAX;
   let mut b_index: usize = usize::MAX;
 
-  let mut duplicates: HashSet<usize> = HashSet::with_capacity(10);
+  let mut duplicates: HashSet<usize> = HashSet::with_capacity(CAPACITY);
   
   for (index, other) in cards.iter().enumerate()
   {
@@ -498,7 +445,7 @@ fn get_closest_two_cards(card: &Card, cards: &Vec<Card>, rgb_index: usize) -> (u
     b_card_dist = 0;
   }
 
-  return (f_card_dist, f_index, b_card_dist, b_index, if duplicates.is_empty() { None } else { Some(duplicates)});
+  return (f_card_dist, f_index, b_card_dist, b_index, duplicates);
 }
 
 fn compute_distance_forward(from: u16, to: u16) -> u16
