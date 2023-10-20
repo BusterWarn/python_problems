@@ -1,76 +1,125 @@
-# Magical Elixir Brewing with Elixir 🍵
+# Magical Elixir Brewing
 
-Problem is still not really solved, but it soon will be...
+This Elixir program is designed to solve the "Magical Elixir Brewing" problem from Hackerrank. The problem can be found [here](https://www.hackerrank.com/contests/the-apprentice-trials-set-1/challenges/magical-elixir-brewing).
 
-https://www.hackerrank.com/contests/the-apprentice-trials-set-1/challenges/magical-elixir-brewing/problem
+## Concepts
 
-## The Problem Description 🔮
+### Pipes
 
-In this problem, we're given a list of cauldrons, each with a certain amount of liquid, and a target amount `x`. The goal is to find the minimum number of cauldrons needed to meet or exceed `x`. If it's not possible, return -1.
-
-Here's a breakdown of how the Elixir code tackles the problem using different Elixir concepts.
-
-## Atoms ✨
-
-Atoms aren't explicitly used in this problem, but they could be useful for tagging tuples with statuses like `{:ok, value}` or `{:error, reason}`.
-
-## Pattern Matching 🧩
-
-Pattern matching is heavily used to destruct lists and get values from them.
+Pipes (`|>`) are used for function chaining. It takes the output of the function on its left and passes it as the first argument to the function on its right.
 
 ```elixir
-[_n, x] = read_list()
-cauldrons = read_list()
+nr_wizards * number_servings / @cauldron_servings |> Float.ceil() |> trunc()
 ```
 
-Here, `_n` and `x` are extracted from the list returned by `read_list()`. We do the same for `cauldrons`.
+### Modules, Functions, and Private Functions
 
-## Case Statements 🎛️
+In Elixir, a module serves as a namespace for functions. A module is defined using `defmodule` followed by a block containing function definitions (`def`) and private function definitions (`defp`).
 
-We used `case` to handle different cases when reading input:
+#### Public Functions
+
+Public functions are defined using `def` and can be accessed from outside the module. For instance:
 
 ```elixir
-case IO.gets("") do
-  :eof -> :eof
-  str -> String.trim(str) |> String.to_integer()
+@doc """
+Calculates the minimum number of cauldrons needed.
+"""
+def min_cauldrons({nr_wizards, number_servings}) do
+  # ... code ...
 end
 ```
 
-We check if we have reached the end of the file (`:eof`) or if there's more to read.
+#### Private Functions
 
-## Modules 📦
-
-The entire code is wrapped in a module called `Solution`.
+Private functions are defined with `defp` and are only accessible within the module. For example, `read_int` and `read_list` are private functions:
 
 ```elixir
-defmodule Solution do
-  # Functions go here
+defp read_int do
+  # ... code ...
 end
 ```
 
-## Enumerables 🔄
+These private functions encapsulate helper behavior that the module needs internally.
 
-We use `Enum.each` and `Enum.map` to manipulate lists:
+📖 Official Documentation: [Modules and Functions](https://elixir-lang.org/getting-started/modules-and-functions.html)
 
-```elixir
-Enum.each(1..t, fn _ -> ... end)
-Enum.map(&String.to_integer/1)
-```
+### Tuples and Lists
 
-Here, `Enum.each` iterates over each test case, and `Enum.map` is used to convert a list of strings to integers.
+In this program, tuples and lists are widely used to hold and manipulate data.
 
-## Pipelines 🚀
+#### Tuples
 
-We use pipelines extensively to chain together transformations:
+Tuples are ordered collections of elements. A tuple groups the number of wizards with the servings each wizard requires, like so: `{1, 5}`.
 
 ```elixir
-String.trim(str) |> String.split(" ") |> Enum.map(&String.to_integer/1)
+def min_cauldrons({nr_wizards, number_servings}) do
+  # ... code ...
+end
 ```
 
-Here, we trim the string, split it into a list, and then convert each element to an integer.
+Here, the function `min_cauldrons` takes a single tuple argument containing two elements: `nr_wizards` and `number_servings`.
+
+#### Lists
+
+Lists are collections that can hold multiple tuples. The function `read_list` returns a list of tuples:
+
+```elixir
+defp read_list do
+  # ... code ...
+end
+```
+
+It reads lines from standard input, converts each line to a tuple of integers, and then accumulates these tuples into a list.
+
+📖 Official Documentation: [List](https://hexdocs.pm/elixir/List.html), [Tuple](https://hexdocs.pm/elixir/Tuple.html)
 
 ---
 
-By understanding these concepts, you'll not only be able to understand the provided code better but also write your own Elixir programs more effectively! 😄
+Feel free to integrate these updates into your README.md! 😎
 
-Happy coding, and good luck with the Magical Elixir Brewing problem! 🍀
+### Tuples and Lists
+
+The code uses tuples to group the number of wizards with the servings each requires. Lists of these tuples are manipulated using `Enum.map`.
+
+```elixir
+Enum.map(&List.to_tuple(Enum.map(&1, fn x -> String.to_integer(x) end)))
+```
+
+### Module Attributes
+
+Module attributes serve as constants in Elixir. In our case, `@cauldron_servings` is set to 4, representing the servings in each cauldron.
+
+```elixir
+@cauldron_servings 4
+```
+
+### Official Documentation
+
+To read more on these concepts, check out the [official Elixir docs](https://hexdocs.pm/elixir/).
+
+## Testing
+
+The program uses ExUnit for testing, which is built into Elixir. The tests are in the `test/solution_test.exs` file.
+
+To run the tests:
+
+```sh
+mix test
+```
+
+### DocTests
+
+Module-level documentation (`@doc`) often includes examples of function use. These examples can be executed as tests, known as doctests.
+
+```elixir
+@doc """
+  iex> Solution.min_cauldrons({10, 5})
+  13
+"""
+```
+
+To run just the doctests:
+
+```sh
+mix test --only doctest
+```
