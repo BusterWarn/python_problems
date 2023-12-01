@@ -28,6 +28,8 @@ ghc-options:
 
 library:
   source-dirs: src
+  dependencies:
+  - containers
 
 executables:
   aoc23-exe:
@@ -39,6 +41,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - aoc23
+    - containers
 
 tests:
   aoc23-test:
@@ -51,3 +54,4 @@ tests:
     dependencies:
     - aoc23
     - hspec
+    - containers
