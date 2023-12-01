@@ -15,6 +15,7 @@ library
   exposed-modules:
       Day_00.Solution
       Day_01.Solution
+      Day_02.Solution
       PuzzleReader
   other-modules:
       Paths_aoc23
