@@ -1,12 +1,11 @@
 module Day_01.Solution (
   solve_1,
   solve_2,
-  get_all_digit_words_in_string,
 ) where
 
-import Data.List (isInfixOf)
+import Data.List (isPrefixOf)
 import qualified Data.Map as Map
-import Data.Maybe (fromJust, listToMaybe)
+import Data.Maybe (fromJust)
 import PuzzleReader (read_input)
 
 -- Part 1
@@ -19,7 +18,7 @@ solve_1 puzzle_input_file = do
   return [show sumNumbers]
 
 get_calibration_number_1 :: String -> Int
-get_calibration_number_1 input_string =
+get_calibration_number_1 input_string = do
   let first_calibration_number = fromJust . get_first_digit_in_string $ input_string
       second_calibration_number = fromJust . get_first_digit_in_string . reverse $ input_string
    in read $ [first_calibration_number, second_calibration_number]
@@ -42,33 +41,64 @@ word_to_digit :: Map.Map String Int
 word_to_digit =
   Map.fromList
     [ ("one", 1)
+    , ("1", 1)
     , ("two", 2)
+    , ("2", 2)
     , ("three", 3)
+    , ("3", 3)
     , ("four", 4)
+    , ("4", 4)
     , ("five", 5)
+    , ("5", 5)
     , ("six", 6)
+    , ("6", 6)
     , ("seven", 7)
+    , ("7", 7)
     , ("eight", 8)
+    , ("8", 8)
     , ("nine", 9)
+    , ("9", 9)
     ]
 
 solve_2 :: FilePath -> IO [String]
 solve_2 puzzle_input_file = do
   file_content <- read_input puzzle_input_file
-  let numbers = map get_calibration_number_2 file_content
+  let numbers = map get_digit_word_in_string file_content
       sumNumbers = sum numbers
   return [show sumNumbers]
 
-get_calibration_number_2 :: String -> Int
-get_calibration_number_2 input_string =
-  let first_calibration_number = fromJust . get_first_digit_in_string $ input_string
-      second_calibration_number = fromJust . get_first_digit_in_string . reverse $ input_string
-   in read [first_calibration_number, second_calibration_number]
+get_digit_word_in_string :: String -> Int
+get_digit_word_in_string str = do
+  let first_digit = fromJust $ get_first_word_digit_in_string str
+      second_digit = fromJust $ get_last_word_digit_in_string str
+  concat_ints first_digit second_digit
 
-find_digit_in_string :: String -> Int
-find_digit_in_string = undefined
+concat_ints :: Int -> Int -> Int
+concat_ints a b = read (show a ++ show b) :: Int
 
--- >>> get_all_digit_words_in_string $ "one1123tttwo99jfjffivee41"
--- ["one", "two", "five"]
-get_all_digit_words_in_string :: String -> [String]
-get_all_digit_words_in_string str = filter (`isInfixOf` str) (Map.keys word_to_digit)
+get_first_word_digit_in_string :: String -> Maybe Int
+get_first_word_digit_in_string [] = Nothing
+get_first_word_digit_in_string (c : cs) = do
+  case sub_string of
+    Nothing -> get_first_word_digit_in_string cs
+    Just digit -> Just digit
+ where
+  sub_string = string_starts_with_digit (c : cs)
+
+get_last_word_digit_in_string :: String -> Maybe Int
+get_last_word_digit_in_string str = process_string_backwards str ""
+ where
+  process_string_backwards [] right_str = string_starts_with_digit right_str
+  process_string_backwards left_str right_str =
+    case string_starts_with_digit right_str of
+      Just digit -> Just digit
+      Nothing -> process_string_backwards (init left_str) (last left_str : right_str)
+
+string_starts_with_digit :: String -> Maybe Int
+string_starts_with_digit str =
+  case matching_prefixes of
+    [] -> Nothing
+    ((_, digit) : _) -> Just digit
+ where
+  word_digit_pairs = Map.toList word_to_digit
+  matching_prefixes = filter (\(word, _) -> word `isPrefixOf` str) word_digit_pairs

@@ -16,10 +16,6 @@ tests = do
     it "solves first" $ do
       result <- Day01.solve_1 "src/Day_01/test_input_1.txt"
       result `shouldBe` ["142"]
-    it "should filter words correctly" $ do
-      let result = Day01.get_all_digit_words_in_string "one1123tttwo99jfjffivee41"
-      result `shouldBe` ["one", "two", "five"]
-
--- it "solves second" $ do
---   result <- Day01.solve_2 "src/Day_01/test_input_2.txt"
---   result `shouldBe` ["281"]
+    it "solves second" $ do
+      result <- Day01.solve_2 "src/Day_01/test_input_2.txt"
+      result `shouldBe` ["281"]
