@@ -4,7 +4,7 @@ module Day_02.Solution (
 ) where
 
 import Data.List.Split (splitOn)
-import PuzzleReader (read_input)
+import PuzzleReader (readInput)
 import Text.Regex (mkRegex, subRegex)
 
 -- Common code for both problems
@@ -50,7 +50,7 @@ countColors = foldl count (0, 0, 0)
 
 solveFirst :: FilePath -> IO [String]
 solveFirst puzzleInputFile = do
-  input <- read_input puzzleInputFile
+  input <- readInput puzzleInputFile
   let linesOfColors = map parseLineIntoColors input
       linesPossible = zip [1 ..] (map isGamePossible linesOfColors)
       sumOfPossibleGameIndices = sum . map fst . filter snd $ linesPossible :: Int
@@ -86,7 +86,7 @@ areColorsPossible colors =
 
 solveSecond :: FilePath -> IO [String]
 solveSecond puzzleInputFile = do
-  input <- read_input puzzleInputFile
+  input <- readInput puzzleInputFile
   let linesOfColors = map parseLineIntoColors input
       leastPossibleLines = map fewestNumberOfCubesOfEachColor linesOfColors
   return [show . sum $ leastPossibleLines]

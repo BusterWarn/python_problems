@@ -2,7 +2,7 @@ module Day_00.Solution (
   solve,
 ) where
 
-import PuzzleReader (read_input)
+import PuzzleReader (readInput)
 
 solve :: FilePath -> IO [String]
-solve = read_input
+solve = readInput

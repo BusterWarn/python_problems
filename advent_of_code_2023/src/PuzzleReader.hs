@@ -3,7 +3,7 @@
   into a desired format, such as a list of strings.
 -}
 module PuzzleReader (
-  read_input,
+  readInput,
 ) where
 
 import Data.List (dropWhileEnd)
@@ -14,13 +14,13 @@ import Data.List (dropWhileEnd)
 
   Usage example:
 
-  > input <- read_input "path/to/file.txt"
+  > input <- readInput "path/to/file.txt"
   > print input
 
   This will read the contents of 'file.txt' and print them as a list of strings.
 -}
-read_input :: FilePath -> IO [String]
-read_input path = do
+readInput :: FilePath -> IO [String]
+readInput path = do
   content <- readFile path
   return $ filterLines $ lines content
  where
