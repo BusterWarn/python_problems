@@ -30,6 +30,9 @@ library:
   source-dirs: src
   dependencies:
   - containers
+  - split
+  - regex-tdfa
+  - regex-compat
 
 executables:
   aoc23-exe:

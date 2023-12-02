@@ -13,6 +13,7 @@ tests = do
     it "correctly solves the first part" $ do
       result <- Day00.solve "src/Day_00/test_input.txt"
       result `shouldBe` ["Hello", "World!"]
+
   describe "Day 01 Solutions" $ do
     it "solves first" $ do
       result <- Day01.solve_1 "src/Day_01/test_input_1.txt"
@@ -20,10 +21,11 @@ tests = do
     it "solves second" $ do
       result <- Day01.solve_2 "src/Day_01/test_input_2.txt"
       result `shouldBe` ["281"]
-  describe "Day 02 Solutions" $ do
+
+  describe "day 02 solutions" $ do
     it "solves first" $ do
-      result <- Day02.solve_1 "src/Day_01/test_input_1.txt"
-      result `shouldBe` ["142"]
+      result <- Day02.solveFirst "src/day_02/test_input.txt"
+      result `shouldBe` ["8"]
     it "solves second" $ do
-      result <- Day02.solve_2 "src/Day_01/test_input_2.txt"
-      result `shouldBe` ["281"]
+      result <- Day02.solveSecond "src/day_02/test_input.txt"
+      result `shouldBe` ["2286"]
