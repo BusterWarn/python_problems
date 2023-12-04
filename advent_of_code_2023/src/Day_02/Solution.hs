@@ -4,8 +4,7 @@ module Day_02.Solution (
 ) where
 
 import Data.List.Split (splitOn)
-import PuzzleReader (readInput)
-import Text.Regex (mkRegex, subRegex)
+import PuzzleReader (readInput, trimPrefixWithRegex)
 
 -- Common code for both problems
 
@@ -15,20 +14,17 @@ data Color
   | Blue Int
   deriving (Show)
 
--- >>> formatLine $ "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green"
--- <stderr>: hPutChar: invalid argument (cannot encode character '\8216')
+-- >>> parseLineIntoColors $ "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green"
+-- [[Blue 3,Red 4],[Red 1,Green 2,Blue 6],[Green 2]]
 parseLineIntoColors :: String -> [[Color]]
 parseLineIntoColors input_line = do
-  let lineTrimmed = trimGamePrefix input_line -- "3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green"
+  let lineTrimmed = trimPrefixWithRegex input_line "Game [0-9]+: " -- "3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green"
       gamesAsStrings = splitOn "; " lineTrimmed -- ["3 blue, 4 red"], ["1 red, 2 green, 6 blue"], ["2 green"]
       gamesAsSplitString = map (splitOn ", ") gamesAsStrings -- ["3 blue", "4 red"], ["1 red, "2 green, "6 blue"], ["2 green"]
   map (map parseColorFromString) gamesAsSplitString
 
-trimGamePrefix :: String -> String
-trimGamePrefix inputLine = subRegex (mkRegex "Game [0-9]+: ") inputLine ""
-
 -- >>> parseColorFromString $ "3 blue"
--- <stderr>: hPutChar: invalid argument (cannot encode character '\8216')
+-- Blue 3
 parseColorFromString :: String -> Color
 parseColorFromString str =
   case parts of

@@ -4,11 +4,14 @@
 -}
 module PuzzleReader (
   readInput,
+  trimPrefixWithRegex,
 ) where
 
 import Data.List (dropWhileEnd)
+import Text.Regex (mkRegex, subRegex)
 
-{- | Reads the content of a file and processes it into a list of strings.
+{- readInput
+  Reads the content of a file and processes it into a list of strings.
   Each line of the file becomes an element in the list. Trailing empty lines
   are trimmed.
 
@@ -25,3 +28,17 @@ readInput path = do
   return $ filterLines $ lines content
  where
   filterLines = dropWhileEnd null
+
+{- | trimPrefixWithRegex
+Description: Removes a prefix from a string based on a regular expression.
+Parameters:
+  inputLine: The string from which the prefix will be removed.
+  regex: The regular expression defining the prefix to remove.
+Returns: The input string with the prefix defined by the regex removed.
+If the regex does not match at the beginning of the string, the original string is returned unchanged.
+Examples:
+>>> trimPrefixWithRegex "Game 68: green 3" "Game [0-9]+: "
+"green 3"
+-}
+trimPrefixWithRegex :: String -> String -> String
+trimPrefixWithRegex inputLine regex = subRegex (mkRegex regex) inputLine ""
