@@ -25,10 +25,10 @@ tests = do
 
   describe "day 02 solutions" $ do
     it "solves first" $ do
-      result <- Day02.solveFirst "src/day_02/test_input.txt"
+      result <- Day02.solveFirst "src/Day_02/test_input.txt"
       result `shouldBe` ["8"]
     it "solves second" $ do
-      result <- Day02.solveSecond "src/day_02/test_input.txt"
+      result <- Day02.solveSecond "src/Day_02/test_input.txt"
       result `shouldBe` ["2286"]
 
   describe "day 03 solutions" $ do
@@ -51,8 +51,8 @@ tests = do
       Day03.isElemAdjacentToSymbol ('9', 2, 2) matrix `shouldBe` True
       Day03.isElemAdjacentToSymbol ('0', 2, 3) matrix `shouldBe` True
     it "solves first" $ do
-      result <- Day03.solveFirst "src/day_03/test_input.txt"
+      result <- Day03.solveFirst "src/Day_03/test_input.txt"
       result `shouldBe` ["4361"]
     it "solves second" $ do
-      result <- Day03.solveSecond "src/day_03/test_input.txt"
+      result <- Day03.solveSecond "src/Day_03/test_input.txt"
       result `shouldBe` ["467835"]
