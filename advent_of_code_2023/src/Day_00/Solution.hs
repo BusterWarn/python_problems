@@ -4,5 +4,7 @@ module Day_00.Solution (
 
 import PuzzleReader (readInput)
 
-solve :: FilePath -> IO [String]
-solve = readInput
+solve :: FilePath -> IO ()
+solve puzzleInputFile = do
+  hello <- readInput puzzleInputFile
+  putStrLn $ unlines hello

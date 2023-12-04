@@ -33,6 +33,7 @@ splitAndFormatLine line = do
   isPipe c = c == '|'
 
 -- >>> getNrWinnersInCard (0, 2, [41, 48, 83, 86, 17], [83, 86, 6, 31, 17, 9, 48, 53])
+-- 4
 getNrWinnersInCard :: Card -> Int
 getNrWinnersInCard (_, _, winningNumbers, actualNumbers) =
   length . filter id $ map (\number -> isWinningNumber number winningNumbers) actualNumbers
@@ -41,11 +42,10 @@ getNrWinnersInCard (_, _, winningNumbers, actualNumbers) =
 
 -- Part 1
 
-solveFirst :: FilePath -> IO [String]
+solveFirst :: FilePath -> IO Int
 solveFirst puzzleInputFile = do
   input <- parseInput puzzleInputFile
-  let scores = map (calculateWeirdScore . getNrWinnersInCard) input
-  return [show $ sum scores]
+  return $ sum $ map (calculateWeirdScore . getNrWinnersInCard) input
 
 -- >>> calculateWeirdScore 4
 -- 8
@@ -56,11 +56,10 @@ calculateWeirdScore n = 2 * calculateWeirdScore (n - 1)
 
 -- Part 2
 
-solveSecond :: FilePath -> IO [String]
+solveSecond :: FilePath -> IO Int
 solveSecond puzzleInputFile = do
-  input <- parseInput puzzleInputFile
-  let result = scratchAllTheCards input
-  return [show result]
+  cards <- parseInput puzzleInputFile
+  return $ scratchAllTheCards cards
 
 scratchAllTheCards :: [Card] -> Int
 scratchAllTheCards cards = sum $ map getCountOfCard $ go cards 0

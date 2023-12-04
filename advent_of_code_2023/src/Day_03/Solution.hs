@@ -73,12 +73,11 @@ isBeginningOfDigit (c, x, y) matrix = do
 
 -- Part 1
 
-solveFirst :: FilePath -> IO [String]
+solveFirst :: FilePath -> IO Int
 solveFirst puzzleInputFile = do
   matrix <- readInput puzzleInputFile
   let coordsMatrix = [((matrix !! x) !! y, x, y) | x <- [0 .. length matrix - 1], y <- [0 .. length (head matrix) - 1]]
-      answer = sum [getValueOfPartNumber element matrix | element <- coordsMatrix]
-  return [show answer]
+  return $ sum [getValueOfPartNumber element matrix | element <- coordsMatrix]
 
 -- If element in the matrix is part number then return the value
 -- Only valid for first entry in digit.
@@ -104,12 +103,11 @@ isElemAdjacentToSymbol (_, x, y) matrix =
 
 -- Part 2
 
-solveSecond :: FilePath -> IO [String]
+solveSecond :: FilePath -> IO Int
 solveSecond puzzleInputFile = do
   matrix <- readInput puzzleInputFile
   let coordsMatrix = [((matrix !! x) !! y, x, y) | x <- [0 .. length matrix - 1], y <- [0 .. length (head matrix) - 1]]
-      answer = sum [getValueOfGear element matrix | element <- coordsMatrix]
-  return [show answer]
+  return $ sum [getValueOfGear element matrix | element <- coordsMatrix]
 
 getValueOfGear :: Elem Char -> Matrix Char -> Int
 getValueOfGear (c, x, y) matrix

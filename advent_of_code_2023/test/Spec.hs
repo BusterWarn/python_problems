@@ -11,26 +11,21 @@ main = hspec tests
 
 tests :: Spec
 tests = do
-  describe "Day 00 Solution" $ do
-    it "correctly solves the first part" $ do
-      result <- Day00.solve "src/Day_00/test_input.txt"
-      result `shouldBe` ["Hello", "World!"]
-
   describe "Day 01 Solutions" $ do
     it "solves first" $ do
       result <- Day01.solve_1 "src/Day_01/test_input_1.txt"
-      result `shouldBe` ["142"]
+      result `shouldBe` 142
     it "solves second" $ do
       result <- Day01.solve_2 "src/Day_01/test_input_2.txt"
-      result `shouldBe` ["281"]
+      result `shouldBe` 281
 
   describe "day 02 solutions" $ do
     it "solves first" $ do
       result <- Day02.solveFirst "src/Day_02/test_input.txt"
-      result `shouldBe` ["8"]
+      result `shouldBe` 8
     it "solves second" $ do
       result <- Day02.solveSecond "src/Day_02/test_input.txt"
-      result `shouldBe` ["2286"]
+      result `shouldBe` 2286
 
   describe "day 03 solutions" $ do
     it "Neightbours should be correct" $ do
@@ -53,14 +48,14 @@ tests = do
       Day03.isElemAdjacentToSymbol ('0', 2, 3) matrix `shouldBe` True
     it "solves first" $ do
       result <- Day03.solveFirst "src/Day_03/test_input.txt"
-      result `shouldBe` ["4361"]
+      result `shouldBe` 4361
     it "solves second" $ do
       result <- Day03.solveSecond "src/Day_03/test_input.txt"
-      result `shouldBe` ["467835"]
+      result `shouldBe` 467835
   describe "day 04 solutions" $ do
     it "solves first" $ do
       result <- Day04.solveFirst "src/Day_04/test_input.txt"
-      result `shouldBe` ["13"]
+      result `shouldBe` 13
     it "solves second" $ do
       result <- Day04.solveSecond "src/Day_04/test_input.txt"
-      result `shouldBe` ["30"]
+      result `shouldBe` 30

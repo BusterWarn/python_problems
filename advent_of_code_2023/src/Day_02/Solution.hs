@@ -44,13 +44,13 @@ countColors = foldl count (0, 0, 0)
 -- Part 1
 -- Yeah I definetly overdid part 1, could have been really easy...
 
-solveFirst :: FilePath -> IO [String]
+solveFirst :: FilePath -> IO Int
 solveFirst puzzleInputFile = do
   input <- readInput puzzleInputFile
   let linesOfColors = map parseLineIntoColors input
       linesPossible = zip [1 ..] (map isGamePossible linesOfColors)
       sumOfPossibleGameIndices = sum . map fst . filter snd $ linesPossible :: Int
-  return [show sumOfPossibleGameIndices]
+  return $ sumOfPossibleGameIndices
 
 isGamePossible :: [[Color]] -> Bool
 isGamePossible [] = True
@@ -80,12 +80,12 @@ areColorsPossible colors =
 
 -- Part 2
 
-solveSecond :: FilePath -> IO [String]
+solveSecond :: FilePath -> IO Int
 solveSecond puzzleInputFile = do
   input <- readInput puzzleInputFile
   let linesOfColors = map parseLineIntoColors input
       leastPossibleLines = map fewestNumberOfCubesOfEachColor linesOfColors
-  return [show . sum $ leastPossibleLines]
+  return $ sum $ leastPossibleLines
 
 fewestNumberOfCubesOfEachColor :: [[Color]] -> Int
 fewestNumberOfCubesOfEachColor colors = go colors (0, 0, 0)

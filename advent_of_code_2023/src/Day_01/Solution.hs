@@ -3,7 +3,6 @@ module Day_01.Solution (
   solve_2,
 ) where
 
-import Control.Monad (when)
 import Data.List (isPrefixOf)
 import qualified Data.Map as Map
 import Data.Maybe (fromJust)
@@ -11,12 +10,10 @@ import PuzzleReader (readInput)
 
 -- Part 1
 
-solve_1 :: FilePath -> IO [String]
+solve_1 :: FilePath -> IO Int
 solve_1 puzzle_input_file = do
   file_content <- readInput puzzle_input_file
-  let numbers = map get_calibration_number_1 $ file_content
-      sumNumbers = sum numbers
-  return [show sumNumbers]
+  return $ sum $ map get_calibration_number_1 $ file_content
 
 get_calibration_number_1 :: String -> Int
 get_calibration_number_1 input_string = do
@@ -61,12 +58,11 @@ word_to_digit =
     , ("9", 9)
     ]
 
-solve_2 :: FilePath -> IO [String]
+solve_2 :: FilePath -> IO Int
 solve_2 puzzle_input_file = do
   file_content <- readInput puzzle_input_file
   let numbers = map get_digit_word_in_string file_content
-      sumNumbers = sum numbers
-  return [show sumNumbers]
+  return $ sum numbers
 
 get_digit_word_in_string :: String -> Int
 get_digit_word_in_string str = do
