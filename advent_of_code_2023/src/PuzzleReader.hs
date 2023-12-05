@@ -8,7 +8,7 @@ module PuzzleReader (
 ) where
 
 import Data.List (dropWhileEnd)
-import Text.Regex (mkRegex, subRegex)
+import Text.Regex (mkRegex, mkRegexWithOpts, subRegex)
 
 {- readInput
   Reads the content of a file and processes it into a list of strings.
@@ -41,4 +41,19 @@ Examples:
 "green 3"
 -}
 trimPrefixWithRegex :: String -> String -> String
-trimPrefixWithRegex inputLine regex = subRegex (mkRegex regex) inputLine ""
+trimPrefixWithRegex str regex = subRegex (mkRegex regex) str ""
+
+{- | trimSuffixWithRegex
+Description: Removes a suffix from a string based on a regular expression.
+Parameters:
+  inputLine: The string from which the suffix will be removed.
+  regex: The regular expression defining the suffix to remove.
+Returns: The input string with the suffix defined by the regex removed.
+If the regex does not match at the end of the string, the original string is returned unchanged.
+Examples:
+-}
+
+-- >>> trimSuffixWithRegex $ "soil-to-fertilizer map:" " map."
+trimSuffixWithRegex :: String -> String -> String
+trimSuffixWithRegex str regex =
+  subRegex (mkRegexWithOpts (regex ++ "$") False True) str ""

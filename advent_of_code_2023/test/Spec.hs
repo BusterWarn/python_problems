@@ -3,6 +3,7 @@ import qualified Day_01.Solution as Day01
 import qualified Day_02.Solution as Day02
 import qualified Day_03.Solution as Day03
 import qualified Day_04.Solution as Day04
+import qualified Day_05.Solution as Day05
 
 import Test.Hspec
 
@@ -59,3 +60,10 @@ tests = do
     it "solves second" $ do
       result <- Day04.solveSecond "src/Day_04/test_input.txt"
       result `shouldBe` 30
+  describe "day 05 solutions" $ do
+    it "solves first" $ do
+      result <- Day05.solveFirst "src/Day_05/test_input.txt"
+      result `shouldBe` 35
+    it "solves second" $ do
+      result <- Day05.solveSecond "src/Day_05/test_input.txt"
+      result `shouldBe` 1
