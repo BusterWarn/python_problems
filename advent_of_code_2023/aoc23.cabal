@@ -19,6 +19,7 @@ library
       Day_03.Solution
       Day_04.Solution
       Day_05.Solution
+      Day_06.Solution
       PuzzleReader
   other-modules:
       Paths_aoc23
