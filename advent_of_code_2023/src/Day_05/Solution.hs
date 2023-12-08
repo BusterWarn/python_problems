@@ -33,10 +33,7 @@ parseMap rawMap =
   trimNewLine = reverse . dropWhile (== '\n') . reverse
 
 parseMaps :: [String] -> [FromToMapping]
-parseMaps [] = []
-parseMaps (mapRaw : restOfMapsRaw) =
-  let newMapping = parseMap mapRaw
-   in newMapping : parseMaps restOfMapsRaw
+parseMaps = map parseMap
 
 parseInput :: FilePath -> IO ([Int], [FromToMapping])
 parseInput puzzleInputFile = do
@@ -53,7 +50,7 @@ parseInput puzzleInputFile = do
 solveFirst :: FilePath -> IO Int
 solveFirst puzzleInputFile = do
   (seeds, fromToMaps) <- parseInput puzzleInputFile
-  let seedsTransformed = map (\s -> pushNumberThroughMaps s fromToMaps) seeds
+  let seedsTransformed = map (`pushNumberThroughMaps` fromToMaps) seeds
   print seedsTransformed
   print $ minimum seedsTransformed
   return $ minimum seedsTransformed
@@ -61,7 +58,7 @@ solveFirst puzzleInputFile = do
 -- >>> pushNumberThroughMaps 14 [("seed-to-soil map:",[(50,98,2),(52,50,48)]),("soil-to-fertilizer map:",[(0,15,37),(37,52,2),(39,0,15)]),("fertilizer-to-water map:",[(49,53,8),(0,11,42),(42,0,7),(57,7,4)]),("water-to-light map:",[(88,18,7),(18,25,70)]),("light-to-temperature map:",[(45,77,23),(81,45,19),(68,64,13)]),("temperature-to-humidity map:",[(0,69,1),(1,0,69)]),("humidity-to-location map:",[(60,56,37),(56,93,4)])]
 -- 43
 pushNumberThroughMaps :: Int -> [FromToMapping] -> Int
-pushNumberThroughMaps num [] = num
+-- pushNumberThroughMaps num [] = num
 pushNumberThroughMaps num [] = trace ("return num " ++ show num ++ "\n") num
 pushNumberThroughMaps num (fromToMap : rest) =
   let transformedNum = pushNumberThroughMap num fromToMap

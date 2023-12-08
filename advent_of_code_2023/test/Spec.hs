@@ -5,6 +5,7 @@ import qualified Day_03.Solution as Day03
 import qualified Day_04.Solution as Day04
 import qualified Day_05.Solution as Day05
 import qualified Day_06.Solution as Day06
+import qualified Day_07.Solution as Day07
 
 import Test.Hspec
 
@@ -75,3 +76,18 @@ tests = do
     it "solves second" $ do
       result <- Day06.solveSecond "src/Day_06/test_input.txt"
       result `shouldBe` 71503
+  describe "day 07 solutions" $ do
+    it "Calculates hand correctly" $ do
+      Day07.determineHandStrength "AAAAA" `shouldBe` 7 -- Five of a Kind
+      Day07.determineHandStrength "AABAA" `shouldBe` 6 -- Four of a Kind
+      Day07.determineHandStrength "A5A5A" `shouldBe` 5 -- Full House
+      Day07.determineHandStrength "AACAB" `shouldBe` 4 -- Three of a Kind
+      Day07.determineHandStrength "77ABB" `shouldBe` 3 -- Two Pair
+      Day07.determineHandStrength "ABBCD" `shouldBe` 2 -- One Pair
+      Day07.determineHandStrength "ABCDE" `shouldBe` 1 -- All Unique
+    it "solves first" $ do
+      result <- Day07.solveFirst "src/Day_07/test_input.txt"
+      result `shouldBe` 6440
+    it "solves second" $ do
+      result <- Day07.solveSecond "src/Day_07/test_input.txt"
+      result `shouldBe` 1
