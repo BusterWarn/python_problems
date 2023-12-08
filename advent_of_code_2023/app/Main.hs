@@ -8,6 +8,7 @@ import qualified Day_04.Solution as Day_04
 import qualified Day_05.Solution as Day_05
 import qualified Day_06.Solution as Day_06
 import qualified Day_07.Solution as Day_07
+import qualified Day_08.Solution as Day_08
 
 main :: IO ()
 main = do
@@ -24,5 +25,6 @@ main = do
         "5" -> fmap show $ Day_05.solveFirst "src/Day_05/input.txt"
         "6" -> fmap show $ Day_06.solveSecond "src/Day_06/input.txt"
         "7" -> fmap show $ Day_07.solveFirst "src/Day_07/input.txt"
+        "8" -> fmap show $ Day_08.solveFirst "src/Day_08/input.txt"
         _ -> return "Day not recognized."
       putStrLn solution
