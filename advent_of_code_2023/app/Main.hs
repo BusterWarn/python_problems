@@ -1,5 +1,7 @@
 module Main (main) where
 
+import System.Directory (doesFileExist)
+
 import qualified Day_00.Solution as Day_00
 import qualified Day_01.Solution as Day_01
 import qualified Day_02.Solution as Day_02
@@ -15,18 +17,34 @@ main :: IO ()
 main = do
   putStrLn "Enter the day number to run (e.g., 1 for Day01):"
   day <- getLine
-  case day of
-    "0" -> Day_00.solve "src/Day_00/test_input.txt"
-    _ -> do
-      solution <- case day of
-        "1" -> fmap show $ Day_01.solve_2 "src/Day_01/input.txt"
-        "2" -> fmap show $ Day_02.solveSecond "src/Day_02/input.txt"
-        "3" -> fmap show $ Day_03.solveSecond "src/Day_03/input.txt"
-        "4" -> fmap show $ Day_04.solveSecond "src/Day_04/input.txt"
-        "5" -> fmap show $ Day_05.solveFirst "src/Day_05/input.txt"
-        "6" -> fmap show $ Day_06.solveSecond "src/Day_06/input.txt"
-        "7" -> fmap show $ Day_07.solveFirst "src/Day_07/input.txt"
-        "8" -> fmap show $ Day_08.solveFirst "src/Day_08/input.txt"
-        "9" -> fmap show $ Day_09.solveSecond "src/Day_09/input.txt"
-        _ -> return "Day not recognized."
-      putStrLn solution
+
+  let puzzleInputFile = getPuzzleInput $ read day
+  fileExists <- doesFileExist puzzleInputFile
+
+  if not fileExists
+    then putStrLn $ "File does not exist: " ++ puzzleInputFile
+    else case day of
+      "0" -> Day_00.solve puzzleInputFile
+      "1" -> solvePuzzle Day_01.solve_1 Day_01.solve_2 puzzleInputFile
+      "2" -> solvePuzzle Day_02.solveFirst Day_02.solveSecond puzzleInputFile
+      "3" -> solvePuzzle Day_03.solveFirst Day_03.solveSecond puzzleInputFile
+      "4" -> solvePuzzle Day_04.solveFirst Day_04.solveSecond puzzleInputFile
+      "5" -> solvePuzzle Day_05.solveFirst Day_05.solveSecond puzzleInputFile
+      "6" -> solvePuzzle Day_06.solveFirst Day_06.solveSecond puzzleInputFile
+      "7" -> solvePuzzle Day_07.solveFirst Day_07.solveSecond puzzleInputFile
+      "8" -> solvePuzzle Day_08.solveFirst Day_08.solveSecond puzzleInputFile
+      "9" -> solvePuzzle Day_09.solveFirst Day_09.solveSecond puzzleInputFile
+      _ -> putStrLn "Day not applicable"
+
+getPuzzleInput :: Int -> String
+getPuzzleInput dayNumber
+  | dayNumber > 25 = error "Christmas is not applicable above day 25"
+  | dayNumber < 10 = "src/Day_0" ++ show dayNumber ++ "/input.txt"
+  | otherwise = "src/Day_" ++ show dayNumber ++ "/input.txt"
+
+solvePuzzle :: (FilePath -> IO Int) -> (FilePath -> IO Int) -> FilePath -> IO ()
+solvePuzzle solveFirst solveSecond puzzleInputFile = do
+  solutionFirst <- solveFirst puzzleInputFile
+  solutionSecond <- solveSecond puzzleInputFile
+  putStrLn $ "Solution to first: " ++ show solutionFirst
+  putStrLn $ "Solution to second: " ++ show solutionSecond

@@ -45,6 +45,7 @@ executables:
     dependencies:
     - aoc23
     - containers
+    - directory
 
 tests:
   aoc23-test:

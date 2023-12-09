@@ -48,6 +48,7 @@ executable aoc23-exe
       aoc23
     , base ==4.17.2.0
     , containers
+    , directory
   default-language: Haskell2010
 
 test-suite aoc23-test
