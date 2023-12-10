@@ -12,6 +12,7 @@ import qualified Day_06.Solution as Day_06
 import qualified Day_07.Solution as Day_07
 import qualified Day_08.Solution as Day_08
 import qualified Day_09.Solution as Day_09
+import qualified Day_10.Solution as Day_10
 
 main :: IO ()
 main = do
@@ -34,6 +35,7 @@ main = do
       "7" -> solvePuzzle Day_07.solveFirst Day_07.solveSecond puzzleInputFile
       "8" -> solvePuzzle Day_08.solveFirst Day_08.solveSecond puzzleInputFile
       "9" -> solvePuzzle Day_09.solveFirst Day_09.solveSecond puzzleInputFile
+      "10" -> solvePuzzle Day_10.solveFirst Day_10.solveSecond puzzleInputFile
       _ -> putStrLn "Day not applicable"
 
 getPuzzleInput :: Int -> String
